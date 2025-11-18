@@ -26,7 +26,12 @@ for ENTRY in $INGRESSES; do
 
   echo "➡ Convertendo $NS/$NAME → $FILE ..."
 
-  kubectl get ingress "$NAME" -n "$NS" -o yaml \
+  YAML=$(kubectl get ingress "$NAME" -n "$NS" -o yaml)
+
+  HAS_TLS=$(echo "$YAML" | yq 'has("spec.tls")')
+  HAS_CERT_MANAGER=$(echo "$YAML" | yq '.metadata.annotations | has("cert-manager.io/cluster-issuer") or has("cert-manager.io/issuer")')
+
+  echo "$YAML" \
   | yq "
       .metadata.name = .metadata.name + \"-haproxy\" |
       .spec.ingressClassName = \"haproxy\" |
@@ -46,9 +51,18 @@ for ENTRY in $INGRESSES; do
       .metadata.annotations |= with(. ; del(.[] | select(. == null)))
     " > "$FILE"
 
+  # ⚠️ Inserir cert-manager fixes quando necessário
+  if [[ "$HAS_TLS" == "true" && "$HAS_CERT_MANAGER" == "true" ]]; then
+    yq -i '
+      .metadata.annotations."haproxy.org/ssl-redirect" = "true" |
+      .spec.tls |= map(.)
+    ' "$FILE"
+    echo "🔐 Cert-manager detectado → aplicando SSL redirect e preservando TLS"
+  fi
+
 done
 
 echo ""
-echo "🎉 Concluído!"
+echo "🎉 Conversão finalizada!"
 echo "📁 Arquivos gerados em: $OUTPUT_DIR/"
-echo "⚠ Revise especialmente itens com 'configuration-snippet', pois não são suportados por HAProxy"
+echo "⚠ Recomenda-se revisar Ingress com configuration-snippet (não suportado por HAProxy)."
