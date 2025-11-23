@@ -1,14 +1,3 @@
-| Etapa                    | Status |
-| ------------------------ | ------ |
-| Duplicar Ingress         | ⬜      |
-| Converter anotações      | ⬜      |
-| TLS funcionando          | ⬜      |
-| Testes de conectividade  | ⬜      |
-| Testes carga/latência    | ⬜      |
-| Corte de tráfego         | ⬜      |
-| Observabilidade validada | ⬜      |
-| Remover recurso antigo   | ⬜      |
-
 # 🔁 NGINXr Ingress → HAProxy Ingress Converter
 
 Ferramenta automatizada para auxiliar na migração de workloads Kubernetes do **NGINX Ingress Controller** (em EOL) para o **HAProxy Kubernetes Ingress Controller**, com foco em conversões seguras e auditáveis.
